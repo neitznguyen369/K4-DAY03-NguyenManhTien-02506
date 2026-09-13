@@ -1,5 +1,5 @@
 """
-🛠️ TOOL DEFINITIONS & EXECUTION BACKEND
+🛠️ TOOL DEFINITIONS & EXECUTION BACKEND (QC ASSISTANT)
 Mã nguồn chứa danh sách Tool Schemas (JSON Schema) và Execution Layer phục vụ cho MCP Server.
 """
 
@@ -7,45 +7,47 @@ import json
 from typing import Dict, Any
 
 # ==============================================================================
-# 1. KHAI BÁO TOOL SCHEMAS CHUẨN NATIVE JSON SCHEMA (TASK 1.2)
+# 1. KHAI BÁO TOOL SCHEMAS CHUẨN NATIVE JSON SCHEMA
 # ==============================================================================
 
 TOOLS_SCHEMA = [
-    # Tool 1: Đã được định nghĩa mẫu sẵn cho Học viên tham khảo
+    # Tool 1: Tra cứu ca lỗi kiểm định của Annotator
     {
-        "name": "academic_query",
-        "description": "Tra cứu hồ sơ và thông tin học vụ của sinh viên VinUni bằng mã sinh viên.",
+        "name": "query_qc_error",
+        "description": "Tra cứu hồ sơ ca lỗi kiểm định dữ liệu gán nhãn 2D/3D của Annotator theo mã annotator_id.",
         "parameters": {
             "type": "object",
             "properties": {
-                "student_id": {
+                "annotator_id": {
                     "type": "string",
-                    "description": "Mã sinh viên cần tra cứu (ví dụ: 'SV2026001')"
+                    "description": "Mã định danh của Annotator (ví dụ: 'AN2026001')"
                 }
             },
-            "required": ["student_id"]
+            "required": ["annotator_id"]
         }
     },
     
-    # --------------------------------------------------------------------------
-    # TODO 1.2: HỌC VIÊN HOÀN THIỆN TOOL SCHEMA CHO 'schedule_appointment'
-    # 🎯 YÊU CẦU THIẾT KẾ SCHEMA (JSON SCHEMA STANDARD):
-    # 1. Tool dùng để đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.
-    # 2. Thiết kế các tham số (properties) để LLM trích xuất:
-    #    - student_id (string): Mã sinh viên cần đặt lịch (ví dụ: 'SV2026001')
-    #    - datetime_str (string): Thời gian hẹn (ví dụ: '14:00 15/09/2026')
-    #    - advisor_name (string): Tên cố vấn học tập
-    # 3. Khai báo danh sách các trường bắt buộc (required).
-    # --------------------------------------------------------------------------
+    # Tool 2: Tạo phiếu yêu cầu Rework
     {
-        "name": "schedule_appointment",
-        "description": "Đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.",
+        "name": "create_rework_ticket",
+        "description": "Tạo phiếu yêu cầu Rework (sửa lỗi gán nhãn 2D/3D) cho Annotator.",
         "parameters": {
             "type": "object",
             "properties": {
-                # TODO 1.2: Khai báo các thuộc tính tham số cho Tool tại đây...
+                "annotator_id": {
+                    "type": "string",
+                    "description": "Mã Annotator cần rework (ví dụ: 'AN2026001')"
+                },
+                "reason": {
+                    "type": "string",
+                    "description": "Lý do reject hoặc mô tả lỗi chi tiết (ví dụ: 'Lỗi lệch Bounding Box 3D quá 5cm')"
+                },
+                "deadline": {
+                    "type": "string",
+                    "description": "Hạn chót hoàn thành Rework (ví dụ: '2026-09-20' hoặc '14:00 25/09/2026')"
+                }
             },
-            "required": [] # TODO 1.2: Khai báo danh sách các trường bắt buộc tại đây...
+            "required": ["annotator_id", "reason", "deadline"]
         }
     }
 ]
@@ -55,57 +57,61 @@ TOOLS_SCHEMA = [
 # ==============================================================================
 
 MOCK_DATABASE = {
-    "SV2026001": {
-        "full_name": "Nguyễn Văn An",
-        "class": "AI-K4",
-        "gpa": 3.85,
-        "email": "an.nv@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "PGS.TS Nguyễn Văn A"
+    "AN2026001": {
+        "annotator_name": "Nguyễn Văn An",
+        "project": "Autonomous Driving 3D Point Cloud",
+        "total_frames_checked": 150,
+        "rejected_frames": ["Frame_0042", "Frame_0089", "Frame_0105"],
+        "error_type": "Lỗi lệch Bounding Box 3D & Thiếu nhãn LiDAR",
+        "qc_status": "REJECTED_NEEDS_REWORK",
+        "reviewer": "QC Lead Minh"
     },
-    "SV2026002": {
-        "full_name": "Trần Thị Bình",
-        "class": "AI-K4",
-        "gpa": 3.60,
-        "email": "binh.tt@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "TS. Lê Thị B"
+    "AN2026002": {
+        "annotator_name": "Trần Thị Bình",
+        "project": "2D Image Object Detection",
+        "total_frames_checked": 300,
+        "rejected_frames": ["Frame_0012"],
+        "error_type": "Sai Class nhãn Pedestrian",
+        "qc_status": "REJECTED_NEEDS_REWORK",
+        "reviewer": "QC Lead Lan"
     }
 }
 
 
-def execute_academic_query(student_id: str) -> str:
-    """Thực thi tra cứu học vụ theo mã sinh viên"""
-    student = MOCK_DATABASE.get(student_id.strip().upper())
-    if student:
+def execute_query_qc_error(annotator_id: str) -> str:
+    """Thực thi tra cứu hồ sơ ca lỗi kiểm định theo mã Annotator"""
+    annotator = MOCK_DATABASE.get(annotator_id.strip().upper())
+    if annotator:
         return json.dumps({
             "status": "SUCCESS",
-            "student_id": student_id,
-            "data": student
+            "annotator_id": annotator_id,
+            "data": annotator
         }, ensure_ascii=False)
     else:
         return json.dumps({
             "status": "NOT_FOUND",
-            "message": f"Không tìm thấy dữ liệu sinh viên có mã '{student_id}'"
+            "message": f"Không tìm thấy dữ liệu ca lỗi cho Annotator có mã '{annotator_id}'"
         }, ensure_ascii=False)
 
 
-def execute_schedule_appointment(student_id: str, datetime_str: str, advisor_name: str = "PGS.TS Nguyễn Văn A") -> str:
-    """Thực thi đặt lịch hẹn tư vấn học vụ"""
+def execute_create_rework_ticket(annotator_id: str, reason: str, deadline: str) -> str:
+    """Thực thi tạo phiếu yêu cầu Rework cho Annotator"""
+    clean_id = annotator_id.strip().upper()
+    ticket_id = f"RW-2026-{clean_id[-4:] if len(clean_id) >= 4 else '0000'}"
     return json.dumps({
         "status": "SUCCESS",
-        "booking_id": f"BK-{student_id}-99",
-        "student_id": student_id,
-        "datetime": datetime_str,
-        "advisor": advisor_name,
-        "message": f"Đặt lịch thành công cho sinh viên {student_id} với {advisor_name} vào lúc {datetime_str}."
+        "ticket_id": ticket_id,
+        "annotator_id": clean_id,
+        "reason": reason,
+        "deadline": deadline,
+        "message": f"Đã tạo thành công phiếu Rework {ticket_id} cho Annotator {clean_id} với lý do '{reason}', hạn chót: {deadline}."
     }, ensure_ascii=False)
 
 
 # Router gọi tool thực tế
 TOOL_ROUTER = {
-    "academic_query": execute_academic_query,
-    "schedule_appointment": execute_schedule_appointment
+    "query_qc_error": execute_query_qc_error,
+    "create_rework_ticket": execute_create_rework_ticket
 }
 
 def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:

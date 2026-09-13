@@ -41,6 +41,18 @@ cp config/test_cases.example.json config/test_cases.json
 python src/app.py --all
 ```
 
+### Chạy giao diện QC ReAct Studio
+
+Để quan sát trực quan chuỗi `Thought -> Action -> Observation -> Final Answer`, chạy:
+
+```bash
+python src/web_app.py
+```
+
+Sau đó mở http://127.0.0.1:8000. Giao diện sử dụng cùng provider và MCP server với ứng dụng terminal.
+
+Giao diện tự kiểm tra lại `.env` mỗi 3 giây. Khi đổi `LLM_PROVIDER` hoặc API key, provider trên thanh trạng thái và request chat tiếp theo sẽ tự cập nhật, không cần restart server. MCP status cũng được kiểm tra qua endpoint health và hiển thị số tool đang công bố.
+
 **Kỳ vọng Output màn hình:**
 ```text
 ✅ [MOCK OFFLINE MODE PASS]: Môi trường đã sẵn sàng! 

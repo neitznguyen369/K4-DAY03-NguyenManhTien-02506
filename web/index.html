@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QC ReAct Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">✦</span><span>QC ReAct <b>Studio</b></span></div>
+      <div class="status"><span class="status-dot"></span><span id="providerName">connecting</span><span class="status-divider"></span><span id="mcpStatus">MCP connecting</span></div>
+    </header>
+
+    <main class="workspace">
+      <section class="hero-row">
+        <div>
+          <p class="eyebrow">AGENT OBSERVABILITY / 03</p>
+          <h1>Watch the decision<br><em>before it acts.</em></h1>
+          <p class="hero-copy">Theo dõi cách QC Agent suy luận, chọn Action và nhận Observation từ MCP trong một luồng minh bạch.</p>
+        </div>
+        <div class="run-meta"><span class="meta-label">CURRENT RUN</span><strong id="runState">READY</strong><span id="runTimer">Awaiting question</span></div>
+      </section>
+
+      <section class="command-bar">
+        <div class="prompt-icon">⌁</div>
+        <input id="questionInput" autocomplete="off" placeholder="Hỏi về một ca lỗi, tạo phiếu Rework, hoặc hỏi tiêu chuẩn QC...">
+        <button id="runButton" class="run-button"><span>Run agent</span><span class="button-arrow">↗</span></button>
+      </section>
+      <div class="suggestions">
+        <button data-question="Hãy tra cứu thông tin ca lỗi kiểm định của annotator có mã AN2026001.">Tra cứu ca lỗi <span>→</span></button>
+        <button data-question="Hãy tạo phiếu yêu cầu Rework cho annotator AN2026001 với lý do Lỗi lệch Bounding Box 3D quá 5cm vào ngày 2026-09-20.">Tạo phiếu Rework <span>→</span></button>
+        <button data-question="Tiêu chuẩn kiểm định chất lượng dữ liệu gán nhãn 2D/3D là gì?">Hỏi kiến thức QC <span>→</span></button>
+      </div>
+
+      <section class="process-section">
+        <div class="section-heading"><div><p class="eyebrow">LIVE TRACE</p><h2>Agent process</h2></div><span id="stepCounter" class="step-counter">0 / 4 steps</span></div>
+        <div id="timeline" class="timeline empty-state"><div class="empty-orbit">✦</div><p>Nhập một câu hỏi để bắt đầu quan sát luồng suy luận.</p></div>
+      </section>
+    </main>
+    <footer><span>AI QC ASSISTANT</span><span>Thought → Action → Observation → Answer</span><span>Local environment</span></footer>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Chào bạn, bạn có thể giải thích quy trình kiểm định chất lượng (QC) dữ liệu gán nhãn 2D/3D tiêu chuẩn là gì không?",
+    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, không cần gọi bất kỳ Tool nào.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Hãy tra cứu thông tin ca lỗi kiểm định của annotator có mã AN2026001.",
+    "expected_behavior": "Agent nhận diện nhu cầu tra cứu, tự động phát sinh Tool Call 'query_qc_error' với mã AN2026001.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "appointment_booking",
+    "question": "Hãy tạo phiếu yêu cầu Rework cho annotator AN2026001 với lý do 'Lỗi lệch Bounding Box 3D quá 5cm' vào ngày 2026-09-20.",
+    "expected_behavior": "Agent tự động phát sinh Tool Call 'create_rework_ticket' với đúng deadline và thông tin annotator.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC04",
+    "type": "multi_step_reasoning",
+    "question": "Kiểm tra thông tin ca lỗi của annotator AN2026001 để lấy danh sách các frame bị Reject, sau đó tự động tạo phiếu Rework khắc phục các frame đó vào ngày 2026-09-25.",
+    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct: Tra cứu ca lỗi của annotator trước, sau đó lấy thông tin lỗi để tiến hành tạo phiếu Rework.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "edge_case_handling",
+    "question": "Tra cứu lịch sử kiểm định ca lỗi của annotator AN9999999 giúp tôi.",
+    "expected_behavior": "Agent nhận kết quả NOT_FOUND từ Tool và đưa ra phản hồi lịch sự, chính xác không bịa đặt dữ liệu.",
+    "complexity": "Medium"
+  }
+]

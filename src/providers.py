@@ -6,6 +6,7 @@ Hỗ trợ Native Tool Calling và chuyển đổi linh hoạt qua biến môi t
 import os
 import sys
 import json
+import re
 from typing import Dict, Any, List
 from dotenv import load_dotenv
 
@@ -27,7 +28,7 @@ class BaseLLMProvider:
 
 
 class MockOfflineProvider(BaseLLMProvider):
-    """Offline Mock Provider dùng để chạy thử mà không tốn API Key"""
+    """Offline Mock Provider dùng để chạy thử mà không tốn API Key (QC Assistant Domain)"""
     def __init__(self):
         self.model_name = "Offline-Mock-Model-2026"
 
@@ -36,29 +37,38 @@ class MockOfflineProvider(BaseLLMProvider):
 
     def generate_with_tools(self, prompt: str, tools_schema: List[Dict[str, Any]], system_prompt: str = "") -> Dict[str, Any]:
         prompt_lower = prompt.lower()
+        annotator_match = re.search(r"\b(?:an|ann)_?\d{3,}\b", prompt_lower)
+        annotator_id = annotator_match.group(0).upper() if annotator_match else "AN2026001"
+        deadline_match = re.search(r"\b\d{4}-\d{2}-\d{2}\b", prompt_lower)
+        deadline = deadline_match.group(0) if deadline_match else "Chưa xác định"
         
-        # Mô phỏng nhận diện intent gọi Tool
-        if "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
+        # Mô phỏng nhận diện intent gọi Tool cho đề tài QC Assistant
+        if "rework" in prompt_lower or "tạo phiếu" in prompt_lower or "yêu cầu sửa" in prompt_lower:
             return {
                 "type": "tool_call",
-                "tool_name": "schedule_appointment",
-                "arguments": {"student_id": "SV2026001", "datetime_str": "14:00 15/09/2026", "advisor_name": "PGS.TS Nguyễn Văn A"},
-                "thought": "Người dùng yêu cầu đặt lịch hẹn tư vấn cho sinh viên SV2026001. Tôi sẽ gọi tool schedule_appointment."
+                "tool_name": "create_rework_ticket",
+                "arguments": {
+                    "annotator_id": annotator_id,
+                    "reason": "Thiếu 3D Bounding Box cho vật thể bị khuất",
+                    "deadline": deadline
+                },
+                "thought": "Người dùng yêu cầu tạo phiếu Rework cho ca gán nhãn bị lỗi. Tôi sẽ gọi tool create_rework_ticket."
             }
-        elif "sv2026001" in prompt_lower or "tra cứu" in prompt_lower:
+        elif "task_" in prompt_lower or "tra cứu" in prompt_lower or "kiểm tra" in prompt_lower or "ca lỗi" in prompt_lower:
+            # Trích xuất sơ bộ Task ID từ prompt nếu có, mặc định là TASK_2D_8821
+                
             return {
                 "type": "tool_call",
-                "tool_name": "academic_query",
-                "arguments": {"student_id": "SV2026001"},
-                "thought": "Người dùng muốn tra cứu thông tin học vụ của sinh viên SV2026001. Tôi sẽ gọi tool academic_query."
+                "tool_name": "query_qc_error",
+                "arguments": {"annotator_id": annotator_id},
+                "thought": f"Người dùng muốn tra cứu thông tin ca lỗi QC của annotator {annotator_id}. Tôi sẽ gọi tool query_qc_error."
             }
         else:
             return {
                 "type": "text",
-                "content": f"[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-                "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool."
+                "content": "[Mock Agent Response]: Theo tiêu chuẩn QC 2D/3D, tất cả các vật thể bị che khuất trên 80% vẫn phải gán nhãn Bounding Box nếu nhận diện được hình dáng chính.",
+                "thought": "Câu hỏi chung về tiêu chuẩn gán nhãn QC, trả lời trực tiếp không cần gọi Tool."
             }
-
 
 class GeminiProvider(BaseLLMProvider):
     """Google Gemini Provider (Native Tool Calling với Google GenAI SDK)"""

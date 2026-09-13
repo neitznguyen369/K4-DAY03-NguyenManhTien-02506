@@ -1,29 +1,73 @@
 [
   {
     "step": 1,
-    "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
-    "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 2845.93
-  },
-  {
-    "step": 1,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Hãy tra cứu thông tin ca lỗi kiểm định của annotator có mã AN2026001.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "tool_name": "query_qc_error",
     "arguments": {
-      "student_id": "SV2026001"
+      "annotator_id": "AN2026001"
     },
-    "observation": {},
-    "latency_ms": 799.12
+    "observation": {
+      "status": "SUCCESS",
+      "annotator_id": "AN2026001",
+      "data": {
+        "annotator_name": "Nguyễn Văn An",
+        "project": "Autonomous Driving 3D Point Cloud",
+        "total_frames_checked": 150,
+        "rejected_frames": [
+          "Frame_0042",
+          "Frame_0089",
+          "Frame_0105"
+        ],
+        "error_type": "Lỗi lệch Bounding Box 3D & Thiếu nhãn LiDAR",
+        "qc_status": "REJECTED_NEEDS_REWORK",
+        "reviewer": "QC Lead Minh"
+      }
+    },
+    "latency_ms": 1712.21
   },
   {
     "step": 2,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Hãy tra cứu thông tin ca lỗi kiểm định của annotator có mã AN2026001.",
     "action_type": "FINAL_ANSWER",
     "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
+    "output": "Kết quả tra cứu ca lỗi AN2026001: Annotator: , Loại lỗi: Lỗi lệch Bounding Box 3D & Thiếu nhãn LiDAR, Mức độ: , Mô tả: , Trạng thái: .",
     "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Hãy tạo phiếu yêu cầu Rework cho annotator AN2026001 với lý do Lỗi lệch Bounding Box 3D quá 5cm vào ngày 2026-09-20.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "create_rework_ticket",
+    "arguments": {
+      "annotator_id": "AN2026001",
+      "reason": "Thiếu 3D Bounding Box cho vật thể bị khuất",
+      "deadline": "2026-09-20"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "ticket_id": "RW-2026-6001",
+      "annotator_id": "AN2026001",
+      "reason": "Thiếu 3D Bounding Box cho vật thể bị khuất",
+      "deadline": "2026-09-20",
+      "message": "Đã tạo thành công phiếu Rework RW-2026-6001 cho Annotator AN2026001 với lý do 'Thiếu 3D Bounding Box cho vật thể bị khuất', hạn chót: 2026-09-20."
+    },
+    "latency_ms": 1112.47
+  },
+  {
+    "step": 2,
+    "query": "Hãy tạo phiếu yêu cầu Rework cho annotator AN2026001 với lý do Lỗi lệch Bounding Box 3D quá 5cm vào ngày 2026-09-20.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Đã tạo thành công phiếu Rework RW-2026-6001 cho Annotator AN2026001 với lý do 'Thiếu 3D Bounding Box cho vật thể bị khuất', hạn chót: 2026-09-20.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Tiêu chuẩn kiểm định chất lượng dữ liệu gán nhãn 2D/3D là gì?",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Câu hỏi chung về tiêu chuẩn gán nhãn QC, trả lời trực tiếp không cần gọi Tool.",
+    "output": "[Mock Agent Response]: Theo tiêu chuẩn QC 2D/3D, tất cả các vật thể bị che khuất trên 80% vẫn phải gán nhãn Bounding Box nếu nhận diện được hình dáng chính.",
+    "latency_ms": 1361.54
   }
 ]
